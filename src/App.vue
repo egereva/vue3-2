@@ -1,45 +1,30 @@
 <template>
   <div class="container column">
-    <form class="card card-w30">
-      <div class="form-control">
-        <label for="type">Тип блока</label>
-        <select id="type" v-model="type">
-          <option value="title">Заголовок</option>
-          <option value="subtitle">Подзаголовок</option>
-          <option value="avatar">Аватар</option>
-          <option value="text">Текст</option>
-        </select>
-      </div>
-
-      <div class="form-control">
-        <label for="value">Значение</label>
-        <textarea id="value" rows="3" v-model="valueInput"></textarea>
-      </div>
-
-      <app-button color="primary"
-                  :disabled="isDisabled"
-                  @action="addBlock"
-      >Добавить</app-button>
-    </form>
+    <app-form @add-block="addBlock"></app-form>
 
     <div class="card card-w70">
-
-      <template v-if="resumeElements.length" v-for="element in resumeElements">
+      <template v-if="blocks.length" v-for="element in blocks">
         <component :is="element.component" v-bind="{ value: element.value }"></component>
       </template>
 
       <h3 v-else>Добавьте первый блок, чтобы увидеть результат</h3>
     </div>
+
   </div>
+
   <div class="container">
     <p>
-      <app-button color="primary">Загрузить комментарии</app-button>
+      <app-button color="primary" @action="loadComments">Загрузить комментарии</app-button>
     </p>
-    <div class="card">
-      <h2>Комментарии</h2>
-      <app-comments-list></app-comments-list>
-    </div>
-    <app-loader></app-loader>
+
+    <template v-if="showComments">
+      <app-loader v-if="loading"></app-loader>
+      <div class="card" v-else>
+        <h2>Комментарии</h2>
+        <app-comments-list :comments="comments"></app-comments-list>
+      </div>
+    </template>
+
   </div>
 </template>
 
@@ -51,44 +36,63 @@ import AppText from '@/components/AppText'
 import AppCommentsList from '@/components/AppCommentsList'
 import AppLoader from '@/components/ui/AppLoader'
 import AppButton from '@/components/ui/AppButton'
+import AppForm from '@/components/AppForm'
+import axios from 'axios'
 
 export default {
   data() {
     return {
-      type: 'title',
-      valueInput: '',
-      resumeElements: [
-        {
-          component: 'AppTitle',
-          value: 'Резюме Nickname'
-        },
-        {
-          component: 'AppAvatar',
-          value: 'https://cdn.dribbble.com/users/5592443/screenshots/14279501/drbl_pop_r_m_rick_4x.png'
-        },
-        {
-          component: 'AppSubtitle',
-          value: 'Опыт работы'
-        },
-        {
-          component: 'AppText',
-          value: 'главный герой американского мультсериала «Рик и Морти», гениальный учёный, изобретатель, атеист (хотя в некоторых сериях он даже молится Богу, однако, каждый раз после чудесного спасения ссылается на удачу и вновь отвергает его существование), алкоголик, социопат, дедушка Морти. На момент начала третьего сезона ему 70 лет[1]. Рик боится пиратов, а его главной слабостью является некий - "Санчезиум". Исходя из того, что существует неограниченное количество вселенных, существует неограниченное количество Риков, герой сериала предположительно принадлежит к измерению С-137. В серии комикcов Рик относится к измерению C-132, а в игре «Pocket Mortys» — к измерению C-123[2]. Прототипом Рика Санчеза является Эмметт Браун, герой кинотрилогии «Назад в будущее»[3].'
-        }
-      ]
-
+      blocks: [],
+      comments: [],
+      loading: false,
+      showComments: false
     }
   },
-  computed: {
-    isDisabled() {
-      return !(this.valueInput.length > 3)
-    },
-    componentName() {
-
-    }
+  mounted() {
+    this.loadBlocks()
   },
   methods: {
-    addBlock() {
+    async loadBlocks() {
+      try{
+        const {data} = await axios.get('https://vue3-2-default-rtdb.firebaseio.com/resume.json')
 
+        this.blocks = Object.keys(data).map(key => {
+          return {
+            id: key,
+            ...data[key]
+          }
+        })
+
+      } catch (e) {
+        console.log(e.message)
+      }
+    },
+    async addBlock(type, value) {
+      const response = await axios.post('https://vue3-2-default-rtdb.firebaseio.com/resume.json', {
+        component: `app-${type}`,
+        value: value
+      })
+
+      const firebaseData = await response.data
+
+      this.blocks.push({
+        component: `app-${type}`,
+        value: value,
+        id: firebaseData.name
+      })
+
+    },
+
+    async loadComments() {
+      this.showComments = true
+      try {
+        this.loading = true
+        const response = await axios.get('https://jsonplaceholder.typicode.com/comments?_limit=42')
+        this.comments = response.data
+        this.loading = false
+      } catch (e) {
+        console.log(e.message)
+      }
     }
   },
   components: {
@@ -98,7 +102,8 @@ export default {
     AppText,
     AppCommentsList,
     AppLoader,
-    AppButton
+    AppButton,
+    AppForm
   }
 }
 </script>

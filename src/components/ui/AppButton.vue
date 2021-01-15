@@ -1,5 +1,6 @@
 <template>
   <button class="btn" :class="color"
+          :type="type"
           :disabled="disabled"
           @click="$emit('action')">
     <slot/>
@@ -20,6 +21,13 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    type: {
+      type: String,
+      default: 'button',
+      validator(value) {
+        return ['button', 'reset', 'submit'].includes(value)
+      }
     }
   }
 }

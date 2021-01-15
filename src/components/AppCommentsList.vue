@@ -1,17 +1,23 @@
 <template>
-  <ul class="list">
-    <li class="list-item">
+  <ul class="list" v-if="comments.length">
+    <li class="list-item" v-for="comment in comments" :key="comment.id">
       <div>
-        <p><strong>test@microsoft.com</strong></p>
-        <small>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eligendi, reiciendis.</small>
+        <p><strong>{{ comment.email }}</strong></p>
+        <small>{{ comment.body }}</small>
       </div>
     </li>
   </ul>
+  <p v-else>Комментариев пока нет</p>
 </template>
 
 <script>
 export default {
-
+  props: {
+    comments: {
+      type: Array,
+      require: true
+    }
+  }
 }
 </script>
 

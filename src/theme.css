@@ -339,6 +339,24 @@ h3 {
     bottom: 0;
     right: 0;
 }
+
+.loader.black {
+    background: #2c3e50;
+    background: -moz-linear-gradient(left, #000000 10%, rgba(0, 0, 0, 0) 42%);
+    background: -webkit-linear-gradient(left, #000000 10%, rgba(0, 0, 0, 0) 42%);
+    background: -o-linear-gradient(left, #000000 10%, rgba(0, 0, 0, 0) 42%);
+    background: -ms-linear-gradient(left, #000000 10%, rgba(0, 0, 0, 0) 42%);
+    background: linear-gradient(to right, #000000 10%, rgba(0, 0, 0, 0) 42%);
+}
+
+.loader.black:before {
+    background: #000000;
+}
+
+.loader.black:after {
+    background: #ffffff;
+}
+
 @-webkit-keyframes load3 {
     0% {
         -webkit-transform: rotate(0deg);
